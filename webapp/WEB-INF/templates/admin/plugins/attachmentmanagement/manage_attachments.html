@@ -1,0 +1,125 @@
+<#function getColorStatus status>
+	<#if status == 'PROCESSED'>
+		<#return 'success'/>
+	<#elseif status == 'REFUSED'>
+		<#return  'danger'/>
+	<#else>
+		<#return 'info'/>
+	</#if>	
+</#function>
+
+<#function getLabelStatus status>
+	<#if status == 'PROCESSED'>
+		<#return 'CERTIFIÉE'/>
+	<#elseif status == 'REFUSED'>
+		<#return  'REJETÉE'/>
+	<#else>
+		<#return 'A TRAITER'/>
+	</#if>	
+</#function>
+<@pageContainer>
+    <@pageColumn>
+        <@pageHeader title='Tableau de bord des demandes de certifications d’identité via une pièce d’identité numérique'>
+        	<@aButton href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?action=reinit_cache' title='Vider le cache' color='danger' buttonIcon='trash' />			   								
+        </@pageHeader>
+		<@row class="mb-5">
+			<@tform method='post' type='inline' name='filter' action='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp'>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='statut' labelKey='STATUT'>
+					<@select id="status" name='status'>
+						<@option value="" label="" />
+						<@option value="TODO" selected=requestFilter.status?? && requestFilter.status=='TODO' label='A TRAITER' />
+						<@option value="REFUSED" selected=requestFilter.status?? && requestFilter.status=='REFUSED' label='REJETÉE' />
+						<@option value="PROCESSED" selected=requestFilter.status?? && requestFilter.status=='PROCESSED' label='CERTIFIÉE' />
+					</@select>
+				</@formGroup>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='id' labelKey='N°DEMANDE'>
+					<@input type='text' id='id' name='id' value="${(requestFilter.id!)}" inputSize=20 />
+				</@formGroup>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='lastname' labelKey='NOM'>
+					<@input type='text' name='lastname' value="${(requestFilter.lastname!)}" inputSize=20/>
+				</@formGroup>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='firstname' labelKey='PRENOM'>
+					<@input type='text' name='firstname' value="${(requestFilter.firstname!)}" inputSize=20/>
+				</@formGroup>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='birthdate' labelKey='DATE DE NAISSANCE'>
+					<@input type='text' name='birthdate' value="${(requestFilter.birthdate!)}" inputSize=20/>
+				</@formGroup>
+				<@formGroup class="form-label m-1" formStyle="inline" labelFor='email' labelKey='EMAIL'>
+					<@input type='text' name='email' value="${(requestFilter.email!)}" inputSize=20/>
+				</@formGroup>
+				<@formGroup class="form-label mt-6" formStyle="inline" labelFor='filter' labelKey=''>
+					<@button type='submit' buttonIcon='filter' />
+				</@formGroup>
+			</@tform>
+		</@row>
+        <@table headBody=true id='userTable'>
+            <@tr>
+                <@th>N°DEMANDE
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="id" />
+                </@th>
+                <@th>NOM
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="lastname" />
+                </@th>
+                <@th>PRENOM
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="firstname" />
+                </@th>
+                <@th>DATE DE NAISSANCE
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="birthname" />
+                </@th>
+                <@th>EMAIL
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="email" />
+                </@th>
+                <@th>DATE DE DEMANDE
+                    <@sort jsp_url="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp" attribute="requestDate" />
+                </@th>
+                <@th>STATUT</@th>
+                <@th>ACTIONS</@th>
+            </@tr>
+         	<@tableHeadBodySeparator />
+           	<#if requestList??>
+           	<#list requestList as request>
+               <@tr>
+                   <@td>
+					${(request.id)!}
+                   </@td>
+                   <@td>
+                   	${(request.lastname)!}
+                   </@td>
+                   <@td>
+                   	${(request.firstname)!}
+                   </@td>
+                   <@td>
+                   	${(request.birthdate)!}
+                   </@td>
+                   <@td >
+                   	${(request.email)!}
+                   </@td>
+                   <@td>
+                   	${(request.requestDate)!}
+                   </@td>
+				   <@td>
+						<@tag color=getColorStatus(request.status!'') class="rounded-0 p-2" >${getLabelStatus(request.status)!''}</@tag>
+                   </@td>
+				   <@td id="${(request.id)!}">
+				   		<#if request.status == 'TODO' || request.status == 'IN_PROGRESS'  >
+						<@aButton href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?view=attachment_detail&id=${request.id}&type=1' title='Consulter la demande' buttonIcon='eye' hideTitle=['all'] />			   		
+						<@aButton href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?view=attachment_detail&id=${request.id}&type=2' title='Traiter la demande' buttonIcon='check' hideTitle=['all'] />			   								
+						</#if>
+						<#if request.status == 'PROCESSED' || request.status == 'REFUSED'>
+						<@aButton href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?view=attachment_detail&id=${request.id}&type=3' color="info" buttonIcon='plus' title="Historique"/>
+						</#if>
+                   </@td>
+               </@tr>
+               </#list>
+               </#if>
+        </@table>
+        <@paginationAdmin paginator=paginator />
+        
+    </@pageColumn>
+</@pageContainer>
+<script type="module">
+import LuteceTable from './themes/shared/modules/luteceTables.js';
+const table = new LuteceTable( );
+table.tableElementList = document.querySelectorAll("td[data-url]");
+table.setClickableTableRow();
+</script>
