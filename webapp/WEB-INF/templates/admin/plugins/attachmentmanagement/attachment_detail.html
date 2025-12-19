@@ -1,0 +1,363 @@
+<#include "/admin/plugins/identitypicker/identitypicker.ftl" />
+<#function getGenderLabel value>
+	<#if value == "1">
+		<#return 'Madame'/>
+	<#elseif value == "2">
+		<#return 'Monsieur'/>
+	<#else>
+		<#return 'Non précisé'/>
+	</#if>	
+</#function>
+
+<#assign isProcessedRequest=false>
+<#if request?? && request.agent?? && request.agent?has_content>
+	<#assign isProcessedRequest=true>
+</#if>
+
+<#assign title="">
+<#if type=="1">
+	<#assign title="Consulter la demande de certification de l'identité">
+<#elseif type=="2">
+	<#assign title="Traiter la demande de certification de l'identité">
+<#elseif type=="3">
+	<#assign title="Historique du traitement de la demande de certification de l'identité">
+</#if>
+
+<@pageContainer>
+    <@pageColumn>        
+        <@row>
+            <@messages infos=infos />
+            <@messages errors=errors />
+            <@columns class="d-flex justify-content-center" md=8 offsetMd=2>
+                <@pageHeader title=title></@pageHeader>
+            </@columns>
+
+            <#if !isProcessedRequest>
+                <@columns class="d-flex justify-content-center" md=8 offsetMd=2>
+                    <@p>La fonctionnalité de téléchargement est désactivée<br>
+                    Le bouton droit de la souris est désactivé (Zoom actif au survol)</@p>  
+                </@columns>
+
+                <@columns class="d-flex justify-content-center" md=8 offsetMd=2>
+                    <div id="carouselExampleIndicators" class="carousel slide" data-ride="false" data-interval="false" data-pause="false" oncontextmenu="return false;">
+                        
+                        <ol class="carousel-indicators">
+                            <#list request.files as file>
+                                <li
+                                    data-target="#carouselExampleIndicators"
+                                    data-bs-target="#carouselExampleIndicators"
+                                    data-slide-to="${file?index}"
+                                    data-bs-slide-to="${file?index}"
+                                    class="<#if file?index == 0>active</#if>">
+                                    ${file?index + 1}
+                                </li>
+                            </#list>
+                        </ol>
+                        
+                        <div class="carousel-inner">
+                            <#list request.files as file>
+                                <div class="carousel-item <#if file?index == 0>active</#if>">
+                                    <div class="zoom-container">
+                                        <img src="data:${file.mimeType};base64,${file.base64}" 
+                                             class="img-zoomable" 
+                                             onmousedown="return false;">
+                                    </div>
+                                </div>
+                            </#list>
+                        </div>
+                    </div>
+                </@columns>
+            </#if>
+        </@row>        
+        <hr/>
+        <@row>
+       		<@columns md=4 offsetMd=2>
+        		<@h>Identité de l'usager</@h>
+        	</@columns>
+       		<@columns md=4>
+        		Date de la demande de certification:  ${(request.requestDate)!}
+        	</@columns>
+        	<@columns md=8 offsetMd=2>
+		        <@table headBody=true id='userTable'>
+		        	<@tr>
+		                <@th>Attribut</@th>
+		                <@th>Valeur</@th>
+		                <@th>Certification</@th>
+		            </@tr>
+		            <@tableHeadBodySeparator />
+		            <@tr>
+		            	<@td>Sexe</@td>
+		            	<@td>${getGenderLabel((request.gender)!"0")}</@td>
+		            	<@td>${(request.genderCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Nom de naissance</@td>
+		            	<@td>${(request.lastname)!''}</@td>
+		            	<@td>${(request.lastnameCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Nom d'usage</@td>
+		            	<@td>${(request.preferredname)!''}</@td>
+		            	<@td>${(request.preferrednameCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Prénom(s)</@td>
+		            	<@td>${(request.firstname)!''}</@td>
+		            	<@td>${(request.firstnameCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Date de naissance</@td>
+		            	<@td>${(request.birthdate)!''}</@td>
+		            	<@td>${(request.birthdateCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Ville de naissance</@td>
+		            	<@td>${(request.birthCity)!''}</@td>
+		            	<@td>${(request.birthCityCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Pays de naissance</@td>
+		            	<@td>${(request.birthCountry)!''}</@td>
+		            	<@td>${(request.birthCountryCertifier)!''}</@td>
+		            </@tr>
+		            <@tr>
+		            	<@td>Email de contact</@td>
+		            	<@td>${(request.email)!''}</@td>
+		            	<@td>${(request.emailCertifier)!''}</@td>
+		            </@tr>		            
+		        </@table>
+			</@columns>
+			<#if type=="3">
+				<@columns class="p-2 mt-3 bg-white" md=8 offsetMd=2>
+					Date de la demande de certification: ${(request.requestDate)!}</br>
+					<#if request?? && request.refusalReason?? && request.refusalReason?has_content>
+					Motif du rejet: ${(request.refusalReason)!}</br>
+					</#if>
+					Date du traitement: ${(request.dateTreatment)!}</br>
+					Agent: ${(request.agent)!}
+				</@columns>
+			</#if>
+			<#if type=="3" || type=="1">
+				<@columns class="d-flex justify-content-center mt-3" md=8 offsetMd=2>
+					<@aButton class="ms-4" href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp' color="light" title="Retour"/>			   								   		
+				</@columns>
+			</#if>
+			<#if type=="2" && !isProcessedRequest>
+				<@columns class="d-flex justify-content-center mt-3" md=8 offsetMd=2>
+					<@aButton params='data-toggle="modal" data-target="#certify_request" data-backdrop="static" data-keyboard="false"' title="Certifier l'identité" buttonIcon='check' />
+					<#if canEdit>
+					<@div class="ms-4">
+						<@identityPicker 
+							 search=false
+							 creation=false 
+							 update=true 
+							 selection=false
+							 createTask=false
+							 cuid=request.cuid!''
+							 autoFill=true
+							 btnIcon="edit"
+    						 btnLabel="Modifier l'identité"
+				   		/>
+				   	</@div>
+					 </#if>					
+					<@aButton params='data-toggle="modal" data-target="#reject_request" data-backdrop="static" data-keyboard="false"' class="ms-4" color="danger" title="Rejeter la demande" buttonIcon='x' />			   		
+					<@aButton class="ms-4" href='jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp' color="light" title="Annuler"/>			   								   		
+				</@columns>
+			</#if>
+	    </@row>
+	    <!-- Modal reject request -->
+	    <#if type=="2" && !isProcessedRequest>	    
+		<@modal id='reject_request'>
+			<@modalHeader modalTitle="Rejeter la demande de certification de l'identité via les pièces justificatives" />
+			<form action="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?action=rejected"  method="post">
+			<@modalBody>
+				<@formGroup labelKey='Vous devez saisir le motif du rejet' formStyle="inline" mandatory=true>
+					<@input type='hidden' name='id' value='${(request.id)!}'/>
+					<@input type='textarea' name='refusalReason' rows=8 cols=100 value='' maxlength=600 />
+				</@formGroup>
+			</@modalBody>
+			<@modalFooter>
+				<@button type='submit' name='apply' buttonIcon='check' title='Confirmer' color="danger" class="d-flex justify-content-center"/>
+				<@button type='button' name='apply' title='Annuler' color='default' params="data-bs-dismiss='modal'"/>
+			</@modalFooter>
+			</form>
+		</@modal>   
+		</#if>
+	    <!-- Modal certify request -->
+	    <#if type=="2" && !isProcessedRequest>	    
+		<@modal id='certify_request'>
+			<@modalHeader modalTitle="Certifier la demande de certification de l'identité via les pièces justificatives" />
+			<form action="jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?action=certify"  method="post">
+			<@modalBody>
+				<@input type='hidden' name='id' value='${(request.id)!}'/>
+				Etes-vous sûr de vouloir valider la certification de l’identité de l'usager ? 
+			</@modalBody>
+			<@modalFooter>
+				<@button type='submit' name='apply' buttonIcon='check' title='Confirmer' color="danger" class="d-flex justify-content-center"/>
+				<@button type='button' name='apply' title='Annuler' color='default' params="data-bs-dismiss='modal'"/>
+			</@modalFooter>
+			</form>
+		</@modal>   
+		</#if>
+    </@pageColumn>
+</@pageContainer>
+<script>
+$(function () {
+    const $carousel = $('#carouselExampleIndicators');
+    if ($carousel.length) {
+        // Force l'arrêt complet de tout cycle automatique en JS
+        $carousel.carousel({
+            interval: false,
+            ride: false,
+            pause: false
+        });
+    }
+
+    // Gestion du zoom précise : uniquement sur l'élément actif
+    $('.zoom-container').on('mousemove', function(e) {
+        // On ne zoome que si le parent est l'item actif du carousel
+        if ($(this).closest('.carousel-item').hasClass('active')) {
+            const $img = $(this).find('img');
+            const offset = $(this).offset();
+            const x = ((e.pageX - offset.left) / $(this).width()) * 100;
+            const y = ((e.pageY - offset.top) / $(this).height()) * 100;
+            $img.css('transform-origin', x + '% ' + y + '%');
+        }
+    });
+  
+	let currentId = "${(request.id)!''}";
+	
+    //Looking for the shadow host
+    const hostObserver = new MutationObserver(() => {
+        const host = document.querySelector('[id^="ip-shadow-host"]');
+        if (!host || !host.shadowRoot) return;
+
+        const modal = host.shadowRoot.querySelector('.ip-modal');
+        if (!modal) return;
+
+        observeModal(modal);
+        hostObserver.disconnect();
+    });
+
+    hostObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+	//Allows updating the request cache for the modified identity and searches the page
+    function observeModal(modal) {
+        let wasOpen = getComputedStyle(modal).display !== 'none';
+
+        const observer = new MutationObserver(() => {
+            const isOpen = getComputedStyle(modal).display !== 'none';
+
+            if (wasOpen && !isOpen) {
+				//Update cache request
+        		fetch('jsp/admin/plugins/attachmentmanagement/ManageAttachment.jsp?action=update_request_cache&id='+currentId, {
+        	   		method: 'GET'
+        		});
+				//Reload
+				window.location.reload(true);
+            }
+
+            wasOpen = isOpen;
+        });
+
+        observer.observe(modal, {
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+    }
+});
+</script>
+
+<style>
+/* --- Structure --- */
+.carousel {
+    position: relative;
+    width: 600px;
+    margin: 0 auto 70px auto;
+}
+
+/* --- Cadre de 400px avec fond blanc --- */
+.carousel-inner {
+    border: 2px solid #3f51b5;
+    background: #ffffff !important; /* Force le fond blanc */
+    border-radius: 4px;
+    height: 300px; 
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* Assure que les items non-actifs sont totalement cachés et ne gênent pas le zoom */
+.carousel-item {
+    height: 300px;
+    width: 100%;
+    background-color: #ffffff;
+}
+
+.zoom-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: zoom-in;
+    background-color: #ffffff;
+}
+
+/* --- Image et Effet Zoom --- */
+.img-zoomable {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s ease-out; /* Plus fluide */
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+
+/* Zoom uniquement sur l'item actif pour éviter les bugs de superposition */
+.carousel-item.active .zoom-container:hover .img-zoomable {
+    transform: scale(2.5);
+}
+
+/* --- Style du Paginateur --- */
+.carousel-indicators {
+    position: absolute;
+    bottom: -60px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.carousel-indicators li {
+    text-indent: 0 !important;
+    opacity: 1 !important;
+    width: 35px !important;
+    height: 35px !important;
+    background-color: #ffffff !important;
+    border: 2px solid #3f51b5 !important;
+    border-radius: 4px;
+    color: #3f51b5;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important; 
+}
+
+.carousel-indicators li.active {
+    background-color: #3f51b5 !important;
+    color: #ffffff !important;
+}
+
+/* Blocage sélection */
+#carouselExampleIndicators {
+    user-select: none;
+    -webkit-user-select: none;
+}
+</style>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-3.0.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<!-- DAO -->
+	<bean id="attachment-management.requestDAO" class="fr.paris.lutece.plugins.attachmentmanagement.business.RequestDAO"/>
+    
+    <!-- Service -->
+    <bean id="attachment-management.attachmentRequestService" class="fr.paris.lutece.plugins.attachmentmanagement.service.AttachmentRequestService">
+         <constructor-arg ref="attachment-management.identityExtendedService"/>
+         <constructor-arg ref="attachment-management.attachmentFileService"/>
+         <constructor-arg ref="attachment-management.attachmentRequestCacheService"/>
+    </bean>
+    
+    <bean id="attachment-management.identityExtendedService" class="fr.paris.lutece.plugins.attachmentmanagement.service.IdentityExtendedService">
+         <constructor-arg ref="attachment-management.identitystore.service"/>
+         <constructor-arg ref="attachment-management.serviceContract.service"/>
+    </bean>
+    
+    <bean id="attachment-management.attachmentFileService" class="fr.paris.lutece.plugins.attachmentmanagement.service.AttachmentFileService">
+         <constructor-arg ref="attachment-management.identityExtendedService"/>
+    </bean>
+    
+	<!-- IDENTITYSTORE -->
+	<bean id="attachment-management.identitystore.service" class="fr.paris.lutece.plugins.identitystore.v3.web.service.IdentityServiceExtended">
+         <constructor-arg ref="attachment-management.identity.httpAccess"/>
+	</bean>
+	
+	<bean id="attachment-management.identity.httpAccess" class="fr.paris.lutece.plugins.identitystore.v3.web.rs.service.IdentityTransportRest">
+        <constructor-arg ref="attachment-management.identitystore.httpAccessTransport"/>
+    </bean>
+	
+	<!-- ServiceContractService impl -->
+    <bean id="attachment-management.serviceContract.service" class="fr.paris.lutece.plugins.identitystore.v3.web.service.ServiceContractService">
+        <constructor-arg ref="attachment-management.serviceContract.httpAccess"/>
+    </bean>
+       
+    <bean id="attachment-management.serviceContract.httpAccess" class="fr.paris.lutece.plugins.identitystore.v3.web.rs.service.ServiceContractTransportRest">
+         <constructor-arg ref="attachment-management.identitystore.httpAccessTransport"/>
+    </bean>
+       
+	<bean id="attachment-management.identitystore.httpAccessTransport" class="fr.paris.lutece.plugins.identitystore.v3.web.rs.service.HttpApiManagerAccessTransport">
+  		<property name="apiEndPointUrl">
+    		<value>${attachment-management.identitystore.ApiEndPointUrl}</value>
+  		</property>
+  		<property name="accessManagerEndPointUrl">
+    		<value>${attachment-management.identitystore.AccessManagerEndPointUrl}</value>
+  		</property>
+  		<property name="accessManagerCredentials">
+    		<value>${attachment-management.identitystore.AccessManagerCredential}</value>
+  		</property>
+	</bean>
+	
+    <!-- Email provider -->
+   <bean id="attachment-management.provider-manager-email-attachment-request" class="fr.paris.lutece.plugins.attachmentmanagement.provider.AttachmentRequestEmailProviderManager">
+        <constructor-arg type="java.lang.String" value="attachment-management.provider-manager-email-attachment-request"/>
+    </bean>
+    
+    <!-- Cache -->
+    <bean id="attachment-management.attachmentRequestCacheService" class="fr.paris.lutece.plugins.attachmentmanagement.service.cache.AttachmentRequestCacheService"/>
+    
+</beans>
